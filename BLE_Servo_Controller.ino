@@ -5,9 +5,9 @@
 #include <Servo.h>
 #include <Dabble.h>
 
-Servo s0;
+Servo s0, s1;
 int LED = 13;
-int s0A = 0;
+int s0A = 0, s1A = 0;
 bool bytesWereRead = false;
 char c = ' ';
 boolean NL = true;
@@ -27,6 +27,8 @@ void setup() {
   //setup servos
   s0.attach(9);
   s0.write(0);
+  s1.attach(10);
+  s1.write(0);
 
 }
 
@@ -60,6 +62,20 @@ void loop() {
     Serial.println("Down");
     s0A-=(sFactor);
     s0.write(s0A);
+    delay(20);
+  }
+  //increase s1 angle
+  if(GamePad.isLeftPressed() && s1A<180){
+    Serial.println("Left");
+    s1A+=(sFactor);
+    s1.write(s1A);
+    delay(20);
+  }
+  //decrease s1 angle
+  if(GamePad.isRightPressed() && s1A>0){
+    Serial.println("Right");
+    s1A-=(sFactor);
+    s1.write(s1A);
     delay(20);
   }
   
