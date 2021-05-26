@@ -1,22 +1,23 @@
 #define CUSTOM_SETTINGS
 #define INCLUDE_GAMEPAD_MODULE
-#define INCLUDE_DABBLEINPUTS_MODULE
 #define Baud_Rate 9600
 
 #include <Servo.h>
 #include <Dabble.h>
-#include <SoftwareSerial.h>
 
-Servo servo0;
+Servo s0;
 int LED = 13;
 int s0A = 0;
-SoftwareSerial BLE_Shield(4,5);
+bool bytesWereRead = false;
+char c = ' ';
+boolean NL = true;
+//sensitivity factor
+int sFactor = 1;
 
 void setup() {
   //set BAUD rate
   Serial.begin(Baud_Rate);
   Dabble.begin(Baud_Rate);
-  BLE_Shield.begin(Baud_Rate);
 
   //visual LED to indicate function
   pinMode(LED, OUTPUT);
@@ -24,27 +25,42 @@ void setup() {
   pinMode(9, OUTPUT);
 
   //setup servos
-  servo0.attach(9);
-  servo0.write(0);
-  
-  //test if BLE is listening
-  if (BLE_Shield.isListening()){
-    Serial.println("Device is listening.");
-  }
+  s0.attach(9);
+  s0.write(0);
+
 }
 
 void loop() {
   //refresh smartphone input
   Dabble.processInput();
-  if(GamePad.isUpPressed()){
-    Serial.println("Up");
-    s0A+=25;
-    servo0.write(s0A);
+  //decrease speed, increase precision
+  if(GamePad.isStartPressed() && sFactor > 1){
+    Serial.println("Speed Decreased");
+    delay(200);
+    sFactor-=1;
   }
-  if(GamePad.isDownPressed()){
+  //increase speed, decrease precision
+  if(GamePad.isSelectPressed() && sFactor < 10){
+    Serial.println("Speed Increased");
+    delay(200);
+    sFactor+=1;
+  }
+  if(GamePad.isCirclePressed()){
+    Serial.println("Circle");  
+  }
+  //increase s0 angle
+  if(GamePad.isUpPressed() && s0A<180){
+    Serial.println("Up");
+    s0A+=(sFactor);
+    s0.write(s0A);
+    delay(20);
+  }
+  //decrease s0 angle
+  if(GamePad.isDownPressed() && s0A>0){
     Serial.println("Down");
-    s0A-=25;
-    servo0.write(s0A);
+    s0A-=(sFactor);
+    s0.write(s0A);
+    delay(20);
   }
   
 }
