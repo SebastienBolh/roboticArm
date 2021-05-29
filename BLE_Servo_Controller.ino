@@ -5,14 +5,15 @@
 #include <Servo.h>
 #include <Dabble.h>
 
-//servos, s2/s3 are high-torque
+//s0 is shoulder, s1 is elbow, s2 rotates hand, s3 grips
 Servo s0, s1, s2, s3;
-int LED = 13;
+//angles of servos
 int s0A = 0, s1A = 0, s2A = 0, s3A = 0;
+int LED = 13;
 bool bytesWereRead = false;
 char c = ' ';
 boolean NL = true;
-//sensitivity factor
+//sensitivity factor, AKA speed of movement of robot
 int sFactor = 1;
 
 void setup() {
@@ -35,6 +36,24 @@ void setup() {
   s3.write(0);
 }
 
+//increase given servo angle
+void increaseAngle(Servo *servo, int &angle){
+  if(angle<180){
+    angle+=sFactor;
+    servo->write(angle);
+    delay(20);  
+  }
+}
+
+//decrease given servo angle
+void decreaseAngle(Servo *servo, int &angle){
+  if(angle>0){  
+    angle-=sFactor;
+    servo->write(angle);
+    delay(20);  
+  }
+}
+
 void loop() {
   //refresh smartphone input
   Dabble.processInput();
@@ -50,61 +69,44 @@ void loop() {
     delay(200);
     sFactor+=1;
   }
-  //increase s2 angle
-  if(GamePad.isSquarePressed() && s2A<180){
-    Serial.println("Square");
-    s2A+=(sFactor);
-    s2.write(s2A);
-    delay(20);
-  }
-  //decrease s2 angle
-  if(GamePad.isCirclePressed() && s2A>0){
-    Serial.println("Circle");
-    s2A-=(sFactor);
-    s2.write(s2A);
-    delay(20);
-  }
-  //increase s3 angle
-  if(GamePad.isTrianglePressed() && s3A<180){
-    Serial.println("Triangle");
-    s3A+=(sFactor);
-    s3.write(s3A);
-    delay(20);
-  }
-  //decrease s3 angle
-  if(GamePad.isCrossPressed() && s3A>0){
-    Serial.println("Cross");
-    s3A-=(sFactor);
-    s3.write(s3A);
-    delay(20);
-  }
-  //increase s0 angle
-  if(GamePad.isUpPressed() && s0A<180){
+  //move shoulder up
+  if(GamePad.isUpPressed()){
     Serial.println("Up");
-    s0A+=(sFactor);
-    s0.write(s0A);
-    delay(20);
+    increaseAngle(&s0, s0A);
   }
-  //decrease s0 angle
-  if(GamePad.isDownPressed() && s0A>0){
+  //move shoulder down
+  if(GamePad.isDownPressed()){
     Serial.println("Down");
-    s0A-=(sFactor);
-    s0.write(s0A);
-    delay(20);
+    decreaseAngle(&s0, s0A);
   }
-  //increase s1 angle
+  //move elbow up
   if(GamePad.isLeftPressed() && s1A<180){
     Serial.println("Left");
-    s1A+=(sFactor);
-    s1.write(s1A);
-    delay(20);
+    increaseAngle(&s1, s1A);
   }
-  //decrease s1 angle
+  //move elbow down
   if(GamePad.isRightPressed() && s1A>0){
     Serial.println("Right");
-    s1A-=(sFactor);
-    s1.write(s1A);
-    delay(20);
+    decreaseAngle(&s1, s1A);
   }
-  
+  //rotate hand clockwise
+  if(GamePad.isSquarePressed()){
+    Serial.println("Square");
+    increaseAngle(&s2, s2A);
+  }
+  //rotate hand counter-clockwise
+  if(GamePad.isCirclePressed()){
+    Serial.println("Circle");
+    decreaseAngle(&s2, s2A);
+  }
+  //tighten grip
+  if(GamePad.isTrianglePressed()){
+    Serial.println("Triangle");
+    increaseAngle(&s3, s3A);
+  }
+  //loosen grip
+  if(GamePad.isCrossPressed()){
+    Serial.println("Cross");
+    decreaseAngle(&s3, s3A);
+  }
 }
